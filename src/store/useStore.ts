@@ -49,6 +49,8 @@ const LANGUAGE_VERSIONS: Record<string, string> = {
   php: "8.2.3",
 }
 
+const ws_url = process.env.NEXT_PUBLIC_WEBSOCKET_URL || "https://code-editor-ws-l151.onrender.com";
+
 export const useCodeStore = create<CodeStore>((set,get)=>({
     files:[],
     activeFile:null,
@@ -231,7 +233,7 @@ export const useCodeStore = create<CodeStore>((set,get)=>({
 
         set({isRunning:true, output:null})
         try{
-            const response = await fetch("/api/run",{
+            const response = await fetch(`${ws_url}/api/run`,{
                 method:"POST",
                 headers:{"Content-type":"application/json"},
                 body: JSON.stringify({
@@ -268,7 +270,7 @@ export const useCodeStore = create<CodeStore>((set,get)=>({
             existingSocket.disconnect();
         }
 
-        const socket = io("http://localhost:4000");
+        const socket = io(ws_url);
         set({ isLive: true, roomId, socket });
 
         let hasReceivedContent = false;
@@ -299,7 +301,7 @@ export const useCodeStore = create<CodeStore>((set,get)=>({
 
             (async () => {
                 try {
-                    const res = await fetch("/api/user-info");
+                    const res = await fetch(`${ws_url}/api/user-info`);
                     if (!res.ok) throw new Error("Failed to fetch user info");
                     const data = await res.json();
 
@@ -443,7 +445,7 @@ export const useCodeStore = create<CodeStore>((set,get)=>({
             return;
         }
         try{
-            const response = await fetch(`/api/projects/${projectId}`,{
+            const response = await fetch(`${ws_url}/api/projects/${projectId}`,{
             method:"PUT",
             headers: {"Content-type": "application/json"},
             body: JSON.stringify({files})

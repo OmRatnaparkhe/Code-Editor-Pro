@@ -19,6 +19,7 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
 export default function RoomPage() {
+  const ws_url = process.env.NEXT_PUBLIC_WEBSOCKET_URL || "https://code-editor-ws-l151.onrender.com";
   const searchParams = useSearchParams();
   const roomId = searchParams.get('roomId') || '';
   const username = searchParams.get('username') || 'Guest';
@@ -87,7 +88,7 @@ console.log("Hello from room ${roomId}!");
 
     try {
       const inferredLanguage = currentFiles[0]?.language || "javascript";
-      const createRes = await fetch("/api/projects", {
+      const createRes = await fetch(`${ws_url}/api/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: projectName.trim(), language: inferredLanguage }),
@@ -101,7 +102,7 @@ console.log("Hello from room ${roomId}!");
       const createdProject = await createRes.json();
       const newProjectId = createdProject.id as string;
 
-      const saveRes = await fetch(`/api/projects/${newProjectId}`, {
+      const saveRes = await fetch(`${ws_url}/api/projects/${newProjectId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

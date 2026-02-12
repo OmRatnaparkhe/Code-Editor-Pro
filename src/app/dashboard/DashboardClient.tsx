@@ -41,6 +41,7 @@ interface Props {
 }
 
 export default function DashboardClient({ projects }: Props) {
+  const ws_url = process.env.NEXT_PUBLIC_WEBSOCKET_URL || "https://code-editor-ws-l151.onrender.com";
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectName, setProjectName] = useState("");
@@ -65,7 +66,7 @@ export default function DashboardClient({ projects }: Props) {
     
     setIsCreating(true);
     try {
-      const res = await fetch("/api/projects", {
+      const res = await fetch(`${ws_url}/api/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -91,7 +92,7 @@ export default function DashboardClient({ projects }: Props) {
     if (!newName || newName.trim() === "") return;
     
     try {
-      const res = await fetch(`/api/projects/${projectId}`, {
+      const res = await fetch(`${ws_url}/api/projects/${projectId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newName.trim() }),
@@ -109,7 +110,7 @@ export default function DashboardClient({ projects }: Props) {
     if (!confirm("Are you sure you want to delete this project? This action cannot be undone.")) return;
     
     try {
-      const res = await fetch(`/api/projects/${projectId}`, {
+      const res = await fetch(`${ws_url}/api/projects/${projectId}`, {
         method: "DELETE",
       });
       
@@ -126,7 +127,7 @@ export default function DashboardClient({ projects }: Props) {
     
     setIsCreatingRoom(true);
     try {
-      const res = await fetch("/api/projects", {
+      const res = await fetch(`${ws_url}/api/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 

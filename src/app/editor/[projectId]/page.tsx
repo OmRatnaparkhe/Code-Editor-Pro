@@ -24,6 +24,7 @@ interface editorPageProps {
 }
 
 export default function EditorPage({params}:editorPageProps) {
+  const ws_url = process.env.NEXT_PUBLIC_WEBSOCKET_URL || "https://code-editor-ws-l151.onrender.com";
   const resolvedParams = use(params);
   const projectId = resolvedParams.projectId;
   const searchParams = useSearchParams();
@@ -77,7 +78,7 @@ export default function EditorPage({params}:editorPageProps) {
   useEffect(() => {
   const loadProject = async () => {
     try {
-      const res = await fetch(`/api/projects/${projectId}`);
+      const res = await fetch(`${ws_url}/api/projects/${projectId}`);
       
       if (!res.ok) {
         throw new Error(`Failed to fetch project: ${res.status}`);
@@ -106,14 +107,14 @@ export default function EditorPage({params}:editorPageProps) {
       
       const getUsername = async () => {
         try {
-          const res = await fetch('/api/user-info');
+          const res = await fetch(`${ws_url}/api/user-info`);
           const data = await res.json();
           const userName = data.firstName || data.emailAddresses?.[0]?.emailAddress?.split('@')[0] || 'Host';
           setUsername(userName);
           
           joinRoom(generatedRoomId, userName);
 
-          const newUrl = `/editor/${projectId}`;
+          const newUrl = `${ws_url}/editor/${projectId}`;
           window.history.replaceState({},'',newUrl);
         } catch (error) {
           console.error('Error getting user info:', error);
@@ -144,7 +145,7 @@ export default function EditorPage({params}:editorPageProps) {
     setSaveStatus('saving');
     
     try {
-      const res = await fetch(`/api/projects/${projectId}`, {
+      const res = await fetch(`${ws_url}/api/projects/${projectId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

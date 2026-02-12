@@ -1,6 +1,6 @@
-import { useCodeStore } from "client/src/store/useStore";
+import { useCodeStore } from "src/store/useStore";
 import { AlertCircle, Loader2, Terminal } from "lucide-react";
-import {cn} from "client/src/lib/utils"
+import {cn} from "src/lib/utils"
 
 export default function OutputPanel(){
     const {output, isRunning} = useCodeStore();
