@@ -2,15 +2,15 @@
 
 import { useMemo } from "react";
 import { Users } from "lucide-react";
-import { Button } from "src/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "src/components/ui/dialog";
-import { useCodeStore } from "src/store/useStore";
+} from "@/components/ui/dialog";
+import { useCodeStore } from "@/store/useStore";
 
 const ROLES = ["host", "editor", "viewer"] as const;
 

@@ -5,21 +5,21 @@ import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "src/components/ui/button";
-import { Input } from "src/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
   DialogTrigger 
-} from "src/components/ui/dialog";
+} from "@/components/ui/dialog";
 import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "src/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 
 const languages = [
   { value: "javascript", label: "JavaScript", icon: "🟨", color: "bg-yellow-500" },

@@ -1,24 +1,25 @@
 "use client";
-import CodeEditor from "src/components/editor/CodeEditor";
-import OutputPanel from "src/components/editor/OutputPanel";
-import Sidebar from "src/components/editor/Sidebar";
+import CodeEditor from "@/components/editor/CodeEditor";
+import OutputPanel from "@/components/editor/OutputPanel";
+import Sidebar from "@/components/editor/Sidebar";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger
-} from "src/components/ui/dialog";
-import { Button } from "src/components/ui/button";
-import { Input } from "src/components/ui/input";
-import { useCodeStore } from "src/store/useStore";
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useCodeStore } from "@/store/useStore";
 import { Copy, Loader2, PanelLeft, Play, LogOut, Check, Save } from "lucide-react";
-import ParticipantsDialog from "src/components/editor/ParticipantsDialog";
+import ParticipantsDialog from "@/components/editor/ParticipantsDialog";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { Suspense } from "react";
 
-export default function RoomPage() {
+function RoomPageContent() {
   const ws_url = process.env.NEXT_PUBLIC_WEBSOCKET_URL || "https://code-editor-ws-l151.onrender.com";
   const searchParams = useSearchParams();
   const roomId = searchParams.get('roomId') || '';
@@ -251,5 +252,13 @@ console.log("Hello from room ${roomId}!");
         </main>
       </div>
     </div>
+  );
+}
+
+export default function RoomPage() {
+  return (
+    <Suspense fallback={<div className="h-screen w-full bg-[#1e1e1e] text-white flex items-center justify-center">Loading room...</div>}>
+      <RoomPageContent />
+    </Suspense>
   );
 }

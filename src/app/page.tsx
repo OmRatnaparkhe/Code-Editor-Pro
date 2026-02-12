@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Code2, Terminal, Users, Zap, Shield, Github, Star, CheckCircle } from "lucide-react";
-import { Button } from "src/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 

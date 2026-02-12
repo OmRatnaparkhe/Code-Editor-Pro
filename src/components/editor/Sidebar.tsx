@@ -1,16 +1,16 @@
-import { useCodeStore } from "src/store/useStore"
+import { useCodeStore } from "@/store/useStore"
 import { FileCode, FileJson, FolderOpen, Plus, Pencil, Trash2 } from "lucide-react"
-import { cn } from 'src/lib/utils'
+import { cn } from '@/lib/utils'
 import { useMemo, useState } from "react"
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "src/components/ui/dialog"
-import { Button } from "src/components/ui/button"
-import { Input } from "src/components/ui/input"
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 const getFileIcon = (filename:string)=>{
     if(filename.endsWith('.js') || filename.endsWith('.ts')) return <FileCode className="w-4 h-4 text-yellow-400"/>

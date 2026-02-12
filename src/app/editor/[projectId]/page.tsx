@@ -1,29 +1,29 @@
-
 "use client"
-import CodeEditor from "src/components/editor/CodeEditor";
-import OutputPanel from "src/components/editor/OutputPanel";
-import Sidebar from "src/components/editor/Sidebar";
+import CodeEditor from "@/components/editor/CodeEditor";
+import OutputPanel from "@/components/editor/OutputPanel";
+import Sidebar from "@/components/editor/Sidebar";
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
   DialogTrigger 
-} from "src/components/ui/dialog";
-import { Button } from "src/components/ui/button";
-import { Input } from "src/components/ui/input";
-import { useCodeStore } from "src/store/useStore";
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useCodeStore } from "@/store/useStore";
 import { Copy, Loader2, PanelLeft, Play, Users, LogOut, Check, Save} from "lucide-react";
-import ParticipantsDialog from "src/components/editor/ParticipantsDialog";
+import ParticipantsDialog from "@/components/editor/ParticipantsDialog";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, use } from "react";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 interface editorPageProps {
     params: Promise<{projectId:string}>
 }
 
-export default function EditorPage({params}:editorPageProps) {
+function EditorPageContent({params}:editorPageProps) {
   const ws_url = process.env.NEXT_PUBLIC_WEBSOCKET_URL || "https://code-editor-ws-l151.onrender.com";
   const resolvedParams = use(params);
   const projectId = resolvedParams.projectId;
@@ -296,5 +296,13 @@ export default function EditorPage({params}:editorPageProps) {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function EditorPage(props: editorPageProps) {
+  return (
+    <Suspense fallback={<div className="h-screen w-full bg-[#1e1e1e] text-white flex items-center justify-center">Loading editor...</div>}>
+      <EditorPageContent {...props} />
+    </Suspense>
   );
 }

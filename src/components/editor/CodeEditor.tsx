@@ -1,5 +1,5 @@
 
-import { useCodeStore } from "src/store/useStore";
+import { useCodeStore } from "@/store/useStore";
 import { Editor, OnMount } from "@monaco-editor/react";
 import { useEffect, useRef } from "react";
 

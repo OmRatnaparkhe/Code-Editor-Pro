@@ -1,4 +1,4 @@
-import { prisma } from "src/lib/utils";
+import { prisma } from "@/lib/prisma";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import DashboardClient from "./DashboardClient";
