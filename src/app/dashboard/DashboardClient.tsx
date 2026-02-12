@@ -1,10 +1,10 @@
 "use client";
 
-import { Clock, Code2, Plus, Loader2, FileText,  MoreVertical, Users } from "lucide-react";
+import { Clock, Code2, Plus, Loader2, FileText, MoreVertical, Users } from "lucide-react";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -56,8 +56,27 @@ export default function DashboardClient({ projects }: Props) {
   const [roomId, setRoomId] = useState("");
   const [username, setUsername] = useState("");
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
+  const [projectsData, setProjectsData] = useState(projects); // Local state for projects
 
-  const filteredProjects = projects.filter(project =>
+  // Fetch projects from WebSocket server API on component mount
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const res = await fetch(`${ws_url}/api/projects`);
+        if (res.ok) {
+          const projectsFetched = await res.json();
+          setProjectsData(projectsFetched);
+          console.log('Fetched projects:', projectsFetched);
+        }
+      } catch (error) {
+        console.error('Failed to fetch projects:', error);
+      }
+    };
+
+    fetchProjects();
+  }, [ws_url]);
+
+  const filteredProjects = projectsData.filter(project =>
     project.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -79,6 +98,14 @@ export default function DashboardClient({ projects }: Props) {
       setIsModalOpen(false);
       setProjectName("");
       setSelectedLanguage("javascript");
+      
+      // Refresh projects list
+      const updatedProjects = await fetch(`${ws_url}/api/projects`);
+      if (updatedProjects.ok) {
+        const projectsList = await updatedProjects.json();
+        setProjectsData(projectsList);
+      }
+      
       router.push(`/editor/${project.id}`);
     } catch (error) {
       console.error("Error creating project:", error);
@@ -99,7 +126,12 @@ export default function DashboardClient({ projects }: Props) {
       });
       
       if (res.ok) {
-        router.refresh(); 
+        // Refresh projects list after rename
+        const updatedProjects = await fetch(`${ws_url}/api/projects`);
+        if (updatedProjects.ok) {
+          const projectsList = await updatedProjects.json();
+          setProjectsData(projectsList);
+        }
       }
     } catch (error) {
       console.error("Error renaming project:", error);
@@ -115,7 +147,12 @@ export default function DashboardClient({ projects }: Props) {
       });
       
       if (res.ok) {
-        router.refresh(); 
+        // Refresh projects list after delete
+        const updatedProjects = await fetch(`${ws_url}/api/projects`);
+        if (updatedProjects.ok) {
+          const projectsList = await updatedProjects.json();
+          setProjectsData(projectsList);
+        }
       }
     } catch (error) {
       console.error("Error deleting project:", error);
