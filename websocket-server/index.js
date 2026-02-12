@@ -210,6 +210,62 @@ app.delete('/api/projects/:id', async (req, res) => {
   }
 });
 
+// GET /api/user-info
+app.get('/api/user-info', async (req, res) => {
+  try {
+    // For now, return a mock user since we don't have Clerk auth in this server
+    // You'll need to implement proper authentication here
+    const user = await prisma.user.findFirst({
+      where: { clerkId: "default-user" }
+    });
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Return user info in the expected format
+    res.json({
+      id: user.id,
+      firstName: user.name?.split(' ')[0] || "User",
+      lastName: user.name?.split(' ')[1] || "Name",
+      username: user.name?.toLowerCase().replace(' ', '') || "username",
+      emailAddresses: [{ emailAddress: user.email }],
+      imageUrl: null
+    });
+  } catch (error) {
+    console.error("Error fetching user info:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// POST /api/run
+app.post('/api/run', async (req, res) => {
+  try {
+    const { code, language, version } = req.body;
+    
+    // Call Piston API to execute code
+    const response = await fetch("https://emkc.org/api/v2/piston/execute", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        language: language,
+        version: version,
+        files: [
+          { content: code }
+        ]
+      })
+    });
+
+    const result = await response.json();
+    res.json(result);
+  } catch (error) {
+    console.error("Error executing code:", error);
+    res.status(500).json({ error: "Failed to execute code" });
+  }
+});
+
 io.on("connection",(socket)=>{
     console.log("User connected : ",socket.id);
 
