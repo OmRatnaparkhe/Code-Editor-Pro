@@ -1,14 +1,34 @@
 import { Server } from "socket.io"
 import { PrismaClient } from "@prisma/client"
+import express from "express"
+import cors from "cors"
 
+const app = express();
+const port = process.env.PORT || 4000;
 
-const server = process.env.PORT || 4000;
-const io = new Server(server,{
-    cors:{
-        methods:["GET","POST"],
-        origin: "https://code-editor-pro-frxe.onrender.com",
-        credentials: true
-    }
+// Middleware
+app.use(cors({
+  origin: ["https://code-editor-pro-frxe.onrender.com", "http://localhost:3000"],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
+}));
+app.use(express.json());
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+const server = app.listen(port, () => {
+  console.log(`🚀 HTTP Server running on port ${port}`);
+});
+
+const io = new Server(server, {
+  cors: {
+    methods: ["GET", "POST"],
+    origin: "https://code-editor-pro-frxe.onrender.com",
+    credentials: true
+  }
 });
 
 console.log("🚀 WebSocket Server running on port 4000");
@@ -28,6 +48,167 @@ const normalizeRole = (role) => {
 const emitRoomUsers = (roomId) => {
     io.to(roomId).emit("user-joined", rooms[roomId] || []);
 };
+
+// API Routes
+
+// GET /api/projects
+app.get('/api/projects', async (req, res) => {
+  try {
+    // For now, return empty array since we don't have auth in this server
+    // You'll need to implement auth middleware here
+    const projects = await prisma.project.findMany({
+      include: { files: true },
+      orderBy: { updatedAt: "desc" }
+    });
+    res.json(projects);
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// POST /api/projects
+app.post('/api/projects', async (req, res) => {
+  try {
+    const { name = "Untitled Project", language = "javascript" } = req.body;
+    
+    // For now, use a default user - you'll need to implement auth
+    const user = await prisma.user.findFirst({
+      where: { clerkId: "default-user" }
+    });
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const getDefaultContent = (lang) => {
+      switch (lang) {
+        case "python": return "print('Hello World')";
+        case "java": return `public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello World\");\n    }\n}`;
+        case "cpp": return `#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << \"Hello World\" << endl;\n    return 0;\n}`;
+        case "html": return `<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Hello World</title>\n</head>\n<body>\n    <h1>Hello World</h1>\n</body>\n</html>`;
+        case "css": return `/* CSS Styles */\nbody {\n    font-family: Arial, sans-serif;\n    margin: 0;\n    padding: 20px;\n}\n\nh1 {\n    color: #333;\n}`;
+        case "typescript": return `// TypeScript Hello World\nconst message: string = \"Hello World\";\nconsole.log(message);`;
+        case "json": return `{\n  \"message\": \"Hello World\",\n  \"version\": \"1.0.0\"\n}`;
+        default: return "console.log('Hello World');";
+      }
+    };
+
+    const getDefaultFileName = (lang) => {
+      switch (lang) {
+        case "python": return "main.py";
+        case "java": return "Main.java";
+        case "cpp": return "main.cpp";
+        case "html": return "index.html";
+        case "css": return "styles.css";
+        case "typescript": return "main.ts";
+        case "json": return "data.json";
+        default: return "main.js";
+      }
+    };
+
+    const project = await prisma.project.create({
+      data: {
+        name,
+        userId: user.id,
+        files: {
+          create: {
+            name: getDefaultFileName(language),
+            language,
+            content: getDefaultContent(language),
+          },
+        },
+      },
+    });
+
+    res.json(project);
+  } catch (error) {
+    console.error("Error creating project:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// GET /api/projects/[id]
+app.get('/api/projects/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const project = await prisma.project.findUnique({
+      where: { id },
+      include: { files: true },
+    });
+
+    if (!project) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    res.json(project);
+  } catch (error) {
+    console.error("Error fetching project:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// PUT /api/projects/[id]
+app.put('/api/projects/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { files, replace } = req.body;
+
+    if (replace) {
+      await prisma.file.deleteMany({
+        where: { projectId: id },
+      });
+    }
+
+    await prisma.$transaction(
+      files.map((file) =>
+        prisma.file.upsert({
+          where: { id: file.id || "temp-id" },
+          update: {
+            name: file.name,
+            content: file.content,
+          },
+          create: {
+            name: file.name,
+            content: file.content,
+            language: file.language,
+            projectId: id,
+          },
+        })
+      )
+    );
+
+    await prisma.project.update({
+      where: { id },
+      data: { updatedAt: new Date() },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error updating project:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// DELETE /api/projects/[id]
+app.delete('/api/projects/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await prisma.file.deleteMany({
+      where: { projectId: id },
+    });
+
+    await prisma.project.delete({
+      where: { id },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting project:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 io.on("connection",(socket)=>{
     console.log("User connected : ",socket.id);
