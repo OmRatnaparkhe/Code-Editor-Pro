@@ -6,7 +6,8 @@ const server = process.env.PORT || 4000;
 const io = new Server(server,{
     cors:{
         methods:["GET","POST"],
-        origin:"*"
+        origin: "https://code-editor-pro-frxe.onrender.com",
+        credentials: true
     }
 });
 

@@ -1,4 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
+import { corsResponse, corsMiddleware } from "@/lib/cors";
+
+export async function OPTIONS(req: NextRequest) {
+  return new NextResponse(null, { 
+    status: 200,
+    headers: corsMiddleware(req)
+  });
+}
 
 export async function POST(req:NextRequest){
     try{
@@ -19,12 +27,14 @@ export async function POST(req:NextRequest){
 
         const result = await response.json();
         
-        return NextResponse.json(result);
+        const apiResponse = NextResponse.json(result);
+        return corsResponse(apiResponse, req);
     }
     catch(e){
-        return NextResponse.json(
+        const response = NextResponse.json(
             { error: "Failed to execute code" },
             { status : 500 }
-        )
+        );
+        return corsResponse(response, req);
     }
 }

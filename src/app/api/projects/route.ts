@@ -1,10 +1,21 @@
 import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { corsResponse, corsMiddleware } from "@/lib/cors";
 
-export async function GET() {
+export async function OPTIONS(req: NextRequest) {
+  return new NextResponse(null, { 
+    status: 200,
+    headers: corsMiddleware(req)
+  });
+}
+
+export async function GET(request: NextRequest) {
   const { userId } = await auth();
-  if (!userId) return new NextResponse("Unauthorized", { status: 401 });
+  if (!userId) {
+    const response = new NextResponse("Unauthorized", { status: 401 });
+    return corsResponse(response, request);
+  }
 
   const projects = await prisma.project.findMany({
     where: { userId },
@@ -12,12 +23,16 @@ export async function GET() {
     include: { files : true },
   });
 
-  return NextResponse.json(projects);
+  const response = NextResponse.json(projects);
+  return corsResponse(response, request);
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const { userId: clerkId } = await auth();
-  if (!clerkId) return new NextResponse("Unauthorized", { status: 401 });
+  if (!clerkId) {
+    const response = new NextResponse("Unauthorized", { status: 401 });
+    return corsResponse(response, req);
+  }
 
   const { name = "Untitled Project", language = "javascript" } = await req.json();
 
@@ -120,5 +135,6 @@ console.log(message);`;
     },
   });
 
-  return NextResponse.json(project);
+  const response = NextResponse.json(project);
+  return corsResponse(response, req);
 }

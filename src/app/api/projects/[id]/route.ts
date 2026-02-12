@@ -1,6 +1,14 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { corsResponse, corsMiddleware } from "@/lib/cors";
+
+export async function OPTIONS(req: NextRequest) {
+  return new NextResponse(null, { 
+    status: 200,
+    headers: corsMiddleware(req)
+  });
+}
 
 export async function GET(
   req: NextRequest,
@@ -8,7 +16,10 @@ export async function GET(
 ) {
   try {
     const { userId: clerkId } = await auth();
-    if (!clerkId) return new NextResponse("Unauthorized", { status: 401 });
+    if (!clerkId) {
+      const response = new NextResponse("Unauthorized", { status: 401 });
+      return corsResponse(response, req);
+    }
 
     const user = await prisma.user.findUnique({
       where: { clerkId },
@@ -25,17 +36,21 @@ export async function GET(
     });
 
     if (!project) {
-      return new NextResponse("Project not found", { status: 404 });
+      const response = new NextResponse("Project not found", { status: 404 });
+      return corsResponse(response, req);
     }
 
     if (project.userId !== user.id) {
-      return new NextResponse("Forbidden", { status: 403 });
+      const response = new NextResponse("Forbidden", { status: 403 });
+      return corsResponse(response, req);
     }
 
-    return NextResponse.json(project);
+    const response = NextResponse.json(project);
+    return corsResponse(response, req);
   } catch (error) {
     console.error("Error fetching project:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    const response = new NextResponse("Internal Server Error", { status: 500 });
+    return corsResponse(response, req);
   }
 }
 
@@ -46,7 +61,8 @@ export async function PUT(
   try {
     const { userId: clerkId } = await auth();
     if (!clerkId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      const response = new NextResponse("Unauthorized", { status: 401 });
+      return corsResponse(response, req);
     }
 
     const resolvedParams = await params;
@@ -58,15 +74,18 @@ export async function PUT(
     });
 
     if (!user) {
-      return new NextResponse("User not found", { status: 404 });
+      const response = new NextResponse("User not found", { status: 404 });
+      return corsResponse(response, req);
     }
 
     const project = await prisma.project.findUnique({
       where: { id: projectId },
     });
 
-    if (!project || project.userId !== user.id)
-      return new NextResponse("Forbidden", { status: 403 });
+    if (!project || project.userId !== user.id) {
+      const response = new NextResponse("Forbidden", { status: 403 });
+      return corsResponse(response, req);
+    }
 
     if (replace) {
       await prisma.file.deleteMany({
@@ -97,10 +116,12 @@ export async function PUT(
       data: { updatedAt: new Date() },
     });
 
-    return NextResponse.json({ success: true });
+    const response = NextResponse.json({ success: true });
+    return corsResponse(response, req);
   } catch (e) {
     console.error("Error updating project:", e);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    const response = new NextResponse("Internal Server Error", { status: 500 });
+    return corsResponse(response, req);
   }
 }
 
@@ -111,7 +132,8 @@ export async function PATCH(
   try {
     const { userId: clerkId } = await auth();
     if (!clerkId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      const response = new NextResponse("Unauthorized", { status: 401 });
+      return corsResponse(response, req);
     }
 
     const resolvedParams = await params;
@@ -123,25 +145,30 @@ export async function PATCH(
     });
 
     if (!user) {
-      return new NextResponse("User not found", { status: 404 });
+      const response = new NextResponse("User not found", { status: 404 });
+      return corsResponse(response, req);
     }
 
     const project = await prisma.project.findUnique({
       where: { id: projectId },
     });
 
-    if (!project || project.userId !== user.id)
-      return new NextResponse("Forbidden", { status: 403 });
+    if (!project || project.userId !== user.id) {
+      const response = new NextResponse("Forbidden", { status: 403 });
+      return corsResponse(response, req);
+    }
 
     const updatedProject = await prisma.project.update({
       where: { id: projectId },
       data: { name },
     });
 
-    return NextResponse.json(updatedProject);
+    const response = NextResponse.json(updatedProject);
+    return corsResponse(response, req);
   } catch (e) {
     console.error("Error updating project name:", e);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    const response = new NextResponse("Internal Server Error", { status: 500 });
+    return corsResponse(response, req);
   }
 }
 
@@ -152,7 +179,8 @@ export async function DELETE(
   try {
     const { userId: clerkId } = await auth();
     if (!clerkId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      const response = new NextResponse("Unauthorized", { status: 401 });
+      return corsResponse(response, req);
     }
 
     const resolvedParams = await params;
@@ -163,15 +191,18 @@ export async function DELETE(
     });
 
     if (!user) {
-      return new NextResponse("User not found", { status: 404 });
+      const response = new NextResponse("User not found", { status: 404 });
+      return corsResponse(response, req);
     }
 
     const project = await prisma.project.findUnique({
       where: { id: projectId },
     });
 
-    if (!project || project.userId !== user.id)
-      return new NextResponse("Forbidden", { status: 403 });
+    if (!project || project.userId !== user.id) {
+      const response = new NextResponse("Forbidden", { status: 403 });
+      return corsResponse(response, req);
+    }
 
     await prisma.file.deleteMany({
       where: { projectId },
@@ -181,9 +212,11 @@ export async function DELETE(
       where: { id: projectId },
     });
 
-    return NextResponse.json({ success: true });
+    const response = NextResponse.json({ success: true });
+    return corsResponse(response, req);
   } catch (e) {
     console.error("Error deleting project:", e);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    const response = new NextResponse("Internal Server Error", { status: 500 });
+    return corsResponse(response, req);
   }
 }
