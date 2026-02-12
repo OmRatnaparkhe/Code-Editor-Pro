@@ -4,19 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build":"npx prisma generate --schema=../prisma/schema.prisma",
-    "start":"node index.js"
+    "build": "npx prisma generate --schema=../prisma/schema.prisma",
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@prisma/client": "5.22.0",
+    "@prisma/client": "^5.22.0",
     "nodemon": "^3.1.11",
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
-    "prisma": "5.22.0"
+    "prisma": "^5.22.0"
   }
 }
