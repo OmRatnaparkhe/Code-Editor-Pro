@@ -6,7 +6,6 @@ import cors from "cors"
 const app = express();
 const port = process.env.PORT || 4000;
 
-// Middleware
 app.use(cors({
   origin: ["https://code-editor-pro-frxe.onrender.com", "http://localhost:3000"],
   credentials: true,
@@ -14,7 +13,6 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
@@ -49,13 +47,9 @@ const emitRoomUsers = (roomId) => {
     io.to(roomId).emit("user-joined", rooms[roomId] || []);
 };
 
-// API Routes
 
-// GET /api/projects
 app.get('/api/projects', async (req, res) => {
   try {
-    // For now, return empty array since we don't have auth in this server
-    // You'll need to implement auth middleware here
     const projects = await prisma.project.findMany({
       include: { files: true },
       orderBy: { updatedAt: "desc" }
@@ -67,12 +61,10 @@ app.get('/api/projects', async (req, res) => {
   }
 });
 
-// POST /api/projects
 app.post('/api/projects', async (req, res) => {
   try {
     const { name = "Untitled Project", language = "javascript" } = req.body;
     
-    // For now, use a default user - you'll need to implement auth
     const user = await prisma.user.findFirst({
       where: { clerkId: "default-user" }
     });
@@ -128,7 +120,6 @@ app.post('/api/projects', async (req, res) => {
   }
 });
 
-// GET /api/projects/[id]
 app.get('/api/projects/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -148,7 +139,6 @@ app.get('/api/projects/:id', async (req, res) => {
   }
 });
 
-// PUT /api/projects/[id]
 app.put('/api/projects/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -190,7 +180,6 @@ app.put('/api/projects/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/projects/[id]
 app.delete('/api/projects/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -210,11 +199,9 @@ app.delete('/api/projects/:id', async (req, res) => {
   }
 });
 
-// GET /api/user-info
 app.get('/api/user-info', async (req, res) => {
   try {
-    // For now, return a mock user since we don't have Clerk auth in this server
-    // You'll need to implement proper authentication here
+    
     const user = await prisma.user.findFirst({
       where: { clerkId: "default-user" }
     });
@@ -223,9 +210,8 @@ app.get('/api/user-info', async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Return user info in the expected format
     res.json({
-      id: user.id,
+      id: user.clerkId, 
       firstName: user.name?.split(' ')[0] || "User",
       lastName: user.name?.split(' ')[1] || "Name",
       username: user.name?.toLowerCase().replace(' ', '') || "username",
@@ -238,12 +224,10 @@ app.get('/api/user-info', async (req, res) => {
   }
 });
 
-// POST /api/run
 app.post('/api/run', async (req, res) => {
   try {
     const { code, language, version } = req.body;
     
-    // Call Piston API to execute code
     const response = await fetch("https://emkc.org/api/v2/piston/execute", {
       method: "POST",
       headers: {

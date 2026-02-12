@@ -114,7 +114,8 @@ function EditorPageContent({params}:editorPageProps) {
           
           joinRoom(generatedRoomId, userName);
 
-          const newUrl = `${ws_url}/editor/${projectId}`;
+          // Stay on frontend URL, don't redirect to WebSocket server
+          const newUrl = `/editor/${projectId}`;
           window.history.replaceState({},'',newUrl);
         } catch (error) {
           console.error('Error getting user info:', error);

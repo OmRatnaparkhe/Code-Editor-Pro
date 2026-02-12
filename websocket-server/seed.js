@@ -5,7 +5,6 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding database...');
   
-  // Create a default user
   const user = await prisma.user.upsert({
     where: { clerkId: 'default-user' },
     update: {},
@@ -18,7 +17,6 @@ async function main() {
   
   console.log('Created default user:', user);
   
-  // Create a sample project
   const project = await prisma.project.create({
     data: {
       name: 'Sample Project',
